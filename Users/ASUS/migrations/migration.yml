@@ -1,0 +1,29 @@
+name: Run DB Migration
+
+on:
+  push:
+    branches: [ main ]   # Run pipeline only when code is pushed to main branch
+
+jobs:
+  migrate:
+    runs-on: ubuntu-latest   # The GitHub runner machine
+    steps:
+      # Step 1: Download your repo (migration files)
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      # Step 2: Install Postgres client on the runner
+      - name: Install PostgreSQL Client
+        run: sudo apt-get install -y postgresql-client
+
+      # Step 3: Run all SQL files inside migrations folder
+      - name: Run SQL migrations
+        run: |
+          for file in Users/ASUS/migrations/*.sql; do
+            echo "Running migration: $file"
+            PGPASSWORD=${{ secrets.DB_PASSWORD }} psql \
+              -h ${{ secrets.DB_HOST }} \
+              -U ${{ secrets.DB_USER }} \
+              -d ${{ secrets.DB_NAME }} \
+              -f $file
+          done
